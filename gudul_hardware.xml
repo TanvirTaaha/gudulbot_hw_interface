@@ -1,0 +1,7 @@
+<library path="gudulbot_hw_interface">
+  <class name="gudulbot_hw_interface/GudulHWInterface" type="gudul::GudulHWInterface" base_class_type="hardware_interface::SystemInterface">
+    <description>
+      Hardware Interface for GudulBot Differential Drive controller.
+    </description>
+  </class>
+</library>
