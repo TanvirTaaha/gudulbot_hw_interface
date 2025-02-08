@@ -5,6 +5,15 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+
+set(THIS_PACKAGE_INCLUDE_DEPENDS
+  hardware_interface
+  pluginlib
+  rclcpp
+  rclcpp_lifecycle
+  serialx
+)
+
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -16,13 +25,6 @@ find_package(pluginlib REQUIRED)
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
-
-set(THIS_PACKAGE_INCLUDE_DEPENDS
-  hardware_interface
-  pluginlib
-  rclcpp
-  rclcpp_lifecycle
-)
 
 ##### From ros2_control example-2 ##########
 # Specify the required version of ros2_control
@@ -61,6 +63,7 @@ endif()
 add_library(gudulbot_hw_interface 
   SHARED 
   src/hw_interface.cpp 
+  src/serial_comm.cpp
 )
 target_compile_features(gudulbot_hw_interface PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 target_include_directories(gudulbot_hw_interface PUBLIC

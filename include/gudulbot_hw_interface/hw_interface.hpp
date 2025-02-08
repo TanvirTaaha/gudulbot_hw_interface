@@ -15,14 +15,24 @@
 #include "rclcpp/time.hpp"
 #include "rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp"
 #include "rclcpp_lifecycle/state.hpp"
-// #include "serial_comm.hpp"
+#include "serial_comm.hpp"
 #include "std_msgs/msg/string.hpp"
 
 namespace gudul {
 
+#ifdef GETLOGGER
+#undef GETLOGGER
+#endif
+#define GETLOGGER rclcpp::get_logger("GudulHWInterface")
 struct JointCSValues {
   double left;
   double right;
+};
+
+struct Configs {
+  std::string port;
+  uint32_t baud;
+  uint32_t timeout_ms;
 };
 
 class GudulHWInterface : public hardware_interface::SystemInterface {
@@ -49,10 +59,11 @@ class GudulHWInterface : public hardware_interface::SystemInterface {
       const rclcpp::Time& time, const rclcpp::Duration& period) override;
 
  private:
-  //   std::unique_ptr<SerialComm> serial_comm_;
-  JointCSValues hw_command_vels_;
-  JointCSValues hw_state_vels_;
-  JointCSValues hw_state_poss_;
+  std::unique_ptr<SerialComm> _serial_comm = nullptr;
+  JointCSValues _hw_command_vels;
+  JointCSValues _hw_state_vels;
+  JointCSValues _hw_state_poss;
+  Configs _cfg;
 };
 }  // namespace gudul
 
