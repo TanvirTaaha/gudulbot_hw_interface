@@ -3,6 +3,7 @@
 #define __GUDUL_HW_INTERFACE__
 
 #include <vector>
+#include <cmath>
 
 #include "hardware_interface/handle.hpp"
 #include "hardware_interface/hardware_info.hpp"
@@ -30,9 +31,12 @@ struct JointCSValues {
 };
 
 struct Configs {
+  std::string left_wheel_name;
+  std::string right_wheel_name;
   std::string port;
   uint32_t baud;
   uint32_t timeout_ms;
+  uint32_t enc_counts_per_rev;
 };
 
 class GudulHWInterface : public hardware_interface::SystemInterface {
@@ -63,7 +67,9 @@ class GudulHWInterface : public hardware_interface::SystemInterface {
   JointCSValues _hw_command_vels;
   JointCSValues _hw_state_vels;
   JointCSValues _hw_state_poss;
+  
   Configs _cfg;
+  double _rad_per_sec_factor;
 };
 }  // namespace gudul
 

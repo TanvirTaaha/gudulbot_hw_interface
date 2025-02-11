@@ -3,6 +3,9 @@
 namespace gudul {
 
 hardware_interface::CallbackReturn GudulHWInterface::on_init(const hardware_interface::HardwareInfo &info) {
+#ifdef DEBUG_LOG_ENABLED
+  GETLOGGER.set_level(rclcpp::Logger::Level::Debug);
+#endif
   if (
       hardware_interface::SystemInterface::on_init(info) !=
       hardware_interface::CallbackReturn::SUCCESS) {
@@ -50,12 +53,17 @@ hardware_interface::CallbackReturn GudulHWInterface::on_init(const hardware_inte
       return hardware_interface::CallbackReturn::ERROR;
     }
   }
-  GETLOGGER.set_level(rclcpp::Logger::Level::Debug);
+
+  _cfg.left_wheel_name = info.hardware_parameters.at("left_wheel_name");
+  _cfg.right_wheel_name = info.hardware_parameters.at("right_wheel_name");
   _cfg.port = info.hardware_parameters.at("device");
   _cfg.baud = std::stoul(info.hardware_parameters.at("baud_rate"));
   _cfg.timeout_ms = std::stoul(info.hardware_parameters.at("timeout_ms"));
+  _cfg.enc_counts_per_rev = std::stoul(info.hardware_parameters.at("enc_counts_per_rev"));
+  _rad_per_sec_factor = 2 * M_PI / _cfg.enc_counts_per_rev;
   RCLCPP_DEBUG(GETLOGGER, "on_init configs: port:\"%s\", baud:%u, timeout_ms:%u", _cfg.port.c_str(), _cfg.baud, _cfg.timeout_ms);
   RCLCPP_INFO(GETLOGGER, "on_init success");
+
   return hardware_interface::CallbackReturn::SUCCESS;
 }
 
@@ -119,6 +127,7 @@ hardware_interface::CallbackReturn GudulHWInterface::on_deactivate(
   _hw_command_vels.right = _hw_state_vels.right;
 
   _serial_comm->write_commands({_hw_command_vels.left, _hw_command_vels.right});
+  _serial_comm->stop_backgnd_thread();
   _serial_comm->close_serial();
 
   RCLCPP_INFO(GETLOGGER, "Successfully deactivated!");
@@ -127,26 +136,26 @@ hardware_interface::CallbackReturn GudulHWInterface::on_deactivate(
 
 hardware_interface::return_type GudulHWInterface::read(
     const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/) {
-  RCLCPP_INFO(GETLOGGER, "read calllleddd......");
+  // RCLCPP_INFO(GETLOGGER, "read calllleddd......");
   // Read states from serial and give them to controller
   States states = _serial_comm->get_states();
-  _hw_state_poss.left = states.positions.left;
-  _hw_state_poss.right = states.positions.right;
-  _hw_state_vels.left = states.velocities.left;
-  _hw_state_vels.right = states.velocities.right;
+  _hw_state_poss.left = states.positions.left * _rad_per_sec_factor;
+  _hw_state_poss.right = states.positions.right * _rad_per_sec_factor;
+  _hw_state_vels.left = states.velocities.left * _rad_per_sec_factor;
+  _hw_state_vels.right = states.velocities.right * _rad_per_sec_factor;
 
-  RCLCPP_INFO(GETLOGGER, "\tleft_vel:%.2lf, right_vel:%.2lf, left_pos:%.2lf, right_pos:%.2lf", states.velocities.left, states.velocities.right, states.positions.left, states.positions.right);
+  // RCLCPP_DEBUG(GETLOGGER, "\tleft_vel:%.2lf, right_vel:%.2lf, left_pos:%.2lf, right_pos:%.2lf", states.velocities.left, states.velocities.right, states.positions.left, states.positions.right);
 
   return hardware_interface::return_type::OK;
 }
 
 hardware_interface::return_type GudulHWInterface::write(
     const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/) {
-  RCLCPP_INFO(GETLOGGER, "write calllleddd......");
+  // RCLCPP_INFO(GETLOGGER, "write calllleddd......");
 
   // Write the commands to serial
   _serial_comm->write_commands({_hw_command_vels.left, _hw_command_vels.right});
-  RCLCPP_INFO(GETLOGGER, "\tleft_vel:%.2lf, right_vel:%.2lf", _hw_command_vels.left, _hw_command_vels.right);
+  // RCLCPP_DEBUG(GETLOGGER, "\tleft_vel:%.2lf, right_vel:%.2lf", _hw_command_vels.left, _hw_command_vels.right);
   return hardware_interface::return_type::OK;
 }
 
