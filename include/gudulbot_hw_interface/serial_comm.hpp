@@ -19,7 +19,7 @@ namespace gudul {
 #ifdef GETLOGGER
 #undef GETLOGGER
 #endif
-#define GETLOGGER rclcpp::get_logger("SerialX")
+#define GETLOGGER rclcpp::get_logger("SerialComm")
 #define DEBUG_LOG_ENABLED 1
 struct WheelValues {
   double left;
