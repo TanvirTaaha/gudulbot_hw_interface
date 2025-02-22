@@ -54,11 +54,10 @@ class SerialComm {
   States _states;
   uint64_t _LAST_RECEIVED_ms;
   bool _keep_reading;
-  bool _pause_reading;
   char _write_msg_buffer[MSG_LEN];
 
   int receive_data();
-  void write_data(std::string msg);
+  void send_data();
   void enumerate_ports();
 };
 

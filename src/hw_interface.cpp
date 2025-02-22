@@ -112,6 +112,7 @@ hardware_interface::CallbackReturn GudulHWInterface::on_activate(const rclcpp_li
   RCLCPP_INFO(GETLOGGER, "defining serial");
   _serial_comm = std::make_unique<SerialComm>(_cfg.port, _cfg.baud, _cfg.timeout_ms);
   RCLCPP_INFO(GETLOGGER, "defining serial done");
+  std::this_thread::sleep_for(std::chrono::milliseconds(100)); // A delay before writing anything to serial
   _serial_comm->write_commands({_hw_command_vels.left, _hw_command_vels.right});
 
   RCLCPP_INFO(GETLOGGER, "Successfully activated!");
@@ -144,7 +145,7 @@ hardware_interface::return_type GudulHWInterface::read(
   _hw_state_vels.left = states.velocities.left * _rad_per_sec_factor;
   _hw_state_vels.right = states.velocities.right * _rad_per_sec_factor;
 
-  // RCLCPP_DEBUG(GETLOGGER, "\tleft_vel:%.2lf, right_vel:%.2lf, left_pos:%.2lf, right_pos:%.2lf", states.velocities.left, states.velocities.right, states.positions.left, states.positions.right);
+  // RCLCPP_DEBUG(GETLOGGER, "read:\tleft_vel:%.2lf, right_vel:%.2lf, left_pos:%.2lf, right_pos:%.2lf", states.velocities.left, states.velocities.right, states.positions.left, states.positions.right);
 
   return hardware_interface::return_type::OK;
 }
@@ -152,10 +153,11 @@ hardware_interface::return_type GudulHWInterface::read(
 hardware_interface::return_type GudulHWInterface::write(
     const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/) {
   // RCLCPP_INFO(GETLOGGER, "write calllleddd......");
-
+  double l_cmd_vel = _hw_command_vels.left / (1.0 * _rad_per_sec_factor);
+  double r_cmd_vel = _hw_command_vels.right / (1.0 * _rad_per_sec_factor);
   // Write the commands to serial
-  _serial_comm->write_commands({_hw_command_vels.left, _hw_command_vels.right});
-  // RCLCPP_DEBUG(GETLOGGER, "\tleft_vel:%.2lf, right_vel:%.2lf", _hw_command_vels.left, _hw_command_vels.right);
+  _serial_comm->write_commands({l_cmd_vel, r_cmd_vel});
+  // RCLCPP_DEBUG(GETLOGGER, "wrote:\tleft_vel:%.2lf, right_vel:%.2lf", l_cmd_vel, r_cmd_vel);
   return hardware_interface::return_type::OK;
 }
 

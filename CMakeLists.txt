@@ -36,6 +36,18 @@ if(NOT controller_manager_FOUND)
 endif()
 
 
+add_executable(test_serial src/test_serial.cpp)
+ament_target_dependencies(
+  test_serial
+  "std_msgs"
+  "rclcpp"
+  "geometry_msgs"
+  "serialx"
+)
+install(TARGETS test_serial
+  DESTINATION lib/${PROJECT_NAME})
+
+
 # add_executable(hw_interface src/hw_interface.cpp)
 # ament_target_dependencies(
 #   hw_interface
